@@ -13,6 +13,17 @@ val observedSizes = sc.parallelize(1 to 10, slices).map(_ =>barr1.value.size)
 
 ![](https://github.com/ningbingjian1/reading/blob/master/spark-1.6.3%E6%BA%90%E7%A0%81/resources/broadcast-%E7%B1%BB%E7%BB%93%E6%9E%84.png?raw=true)
 
+# broadcast要点
+  1. &ensp;&ensp;broadcast使用很简单，只需要调用```SparkContext..broadcast()``` 就可以。
+  2. 广播变量在Spark中是由BroadcastManager统一进行管理
+  3. 在spark中广播变量的广播方式包含两种:http和Torrent的方式,默认是Torrent方式
+下面详细讲述BroadcastManager,http和Torrent的广播变量存取的详细实现过程
+# BroadcastManager
+
+
+  
+
+   
 
 
 
