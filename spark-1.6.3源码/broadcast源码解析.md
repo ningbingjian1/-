@@ -48,15 +48,21 @@ protected def doDestroy(blocking: Boolean) //销毁广播变量时回调
 TorrentBroadcast.readBroadcastBlock
 
 1.广播变量获取，默认情况是从local中的blockManager直接通过BrocastId获取，如果获取成功就直接返回```BlockResult```,否则从远端。一般情况如果是driver端调用的话是能获取成功，如果是executor调用，则不能。
+
 2.如果上一步获取不成功，就根据block数量，挨个获取，首先也是从本机获取，然后从远端获取 ，一般是executor端会走这个流程
+
 3.如果是第一次获取到block，需要在本机备份一份。这样下次就可以直接从本机获取
 
 ![](https://github.com/ningbingjian1/reading/blob/master/spark-1.6.3%E6%BA%90%E7%A0%81/resources/%E5%B9%BF%E6%92%AD%E5%8F%98%E9%87%8F%E5%86%99%E5%85%A5%E8%AF%BB%E5%8F%96--Torrent.png?raw=true)
 ## HttpBroadcastFactory
 
+
 使用http管理广播变量和使用BlockManager管理广播变量有所不同，主要表现在几个方面:
+
 1.和blockManager一样，都会在driver端预存一份，然后也会在driver端以文件的形式写入磁盘
+
 2.在executor通过http调用的方式获取block
+
 3.不会在executor备份，每次都会调用http来获取block
 
 ![](https://github.com/ningbingjian1/reading/blob/master/spark-1.6.3%E6%BA%90%E7%A0%81/resources/%E5%B9%BF%E6%92%AD%E5%8F%98%E9%87%8F%E5%86%99%E5%85%A5%E8%AF%BB%E5%8F%96--http.png?raw=true)
