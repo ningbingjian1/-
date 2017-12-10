@@ -53,7 +53,7 @@ TorrentBroadcast.readBroadcastBlock
 
 3.如果是第一次获取到block，需要在本机备份一份。这样下次就可以直接从本机获取
 
-![](https://github.com/ningbingjian1/reading/blob/master/spark-1.6.3%E6%BA%90%E7%A0%81/resources/%E5%B9%BF%E6%92%AD%E5%8F%98%E9%87%8F%E5%86%99%E5%85%A5%E8%AF%BB%E5%8F%96--Torrent.png?raw=true)
+![](https://github.com/ningbingjian1/reading/blob/master/spark-1.6.3%E6%BA%90%E7%A0%81/resources/%E5%B9%BF%E6%92%AD%E5%8F%98%E9%87%8F%E5%86%99%E5%85%A5%E8%AF%BB%E5%8F%96--Torrent1.png?raw=true)
 ## HttpBroadcastFactory
 
 
