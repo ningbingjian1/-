@@ -51,7 +51,7 @@ TorrentBroadcast.readBroadcastBlock
 2.如果上一步获取不成功，就根据block数量，挨个获取，首先也是从本机获取，然后从远端获取 ，一般是executor端会走这个流程
 3.如果是第一次获取到block，需要在本机备份一份。这样下次就可以直接从本机获取
 
-![](hhttps://github.com/ningbingjian1/reading/blob/master/spark-1.6.3%E6%BA%90%E7%A0%81/resources/%E5%B9%BF%E6%92%AD%E5%8F%98%E9%87%8F%E5%86%99%E5%85%A5%E8%AF%BB%E5%8F%96.png?raw=true)
+![](https://github.com/ningbingjian1/reading/blob/master/spark-1.6.3%E6%BA%90%E7%A0%81/resources/%E5%B9%BF%E6%92%AD%E5%8F%98%E9%87%8F%E5%86%99%E5%85%A5%E8%AF%BB%E5%8F%96--Torrent.png?raw=true)
 ## HttpBroadcastFactory
 
 使用http管理广播变量和使用BlockManager管理广播变量有所不同，主要表现在几个方面:
