@@ -29,6 +29,28 @@ protected def doUnpersist(blocking: Boolean) // 移除持久化的广播变量
 protected def doDestroy(blocking: Boolean) //销毁广播变量时回调
 ```
 ## TorrentBroadcast
+主要包含两个重要的方法，存储和读取广播变量
+### 存储广播变量
+存储广播变量的方法是```TorrentBroadcast.TorrentBroadcast```
+
+1.默认情况下会在driver端存放一份广播变量
+
+2.将广播变量拆分成多个block存储到BlockManager进行存储,默认每个block大小是4M,通过```spark.broadcast.blockSize```控制.  
+
+3.block的存储方式MEMORY_AND_DISK_SER
+
+
+总结:
+通过源码可以得出结论，默认在driver端存储了两次，一次是未经过分块和未序列化未压缩的存储，一份是分成多块的序列化压缩存储
+
+
+### 读取广播变量
+TorrentBroadcast.readBroadcastBlock
+
+1.广播变量获取，默认情况是从local中的blockManager直接通过BrocastId获取，如果获取成功就直接返回```BlockResult```,否则从远端。一般情况如果是driver端调用的话是能获取成功，如果是executor调用，则不能。
+2.如果上一步获取不成功，就根据block数量，挨个获取，首先也是从本机获取，然后从远端获取 ，一般是executor端会走这个流程
+3.如果是第一次获取到block，需要在本机备份一份。这样下次就可以直接从本机获取
+
 
 ## HttpBroadcastFactory
 
