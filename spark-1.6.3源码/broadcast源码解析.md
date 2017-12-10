@@ -19,7 +19,18 @@ val observedSizes = sc.parallelize(1 to 10, slices).map(_ =>barr1.value.size)
   3. 在spark中广播变量的广播方式包含两种:http和Torrent的方式,默认是Torrent方式
 下面详细讲述BroadcastManager,http和Torrent的广播变量存取的详细实现过程
 # BroadcastManager
-```BroadcastManager```在SparkEnv构造的时候通过调用```new BroadcastManager```进行初始化,在构造```BroadcastManager``` ，默认会调用其```initialize```方法.
+```BroadcastManager```在SparkEnv构造的时候通过调用```new BroadcastManager```进行初始化,在构造```BroadcastManager``` ，默认会调用其```initialize```方法.通过配置```spark.broadcast.factory```查找```BroadcastFactory```,默认情况是```org.apache.spark.broadcast.TorrentBroadcastFactory```
+
+# Broadcast
+是一个抽象类包含有两个子类```TorrentBroadcast```,,```HttpBroadcastFactory```,主要包含几个抽象方法
+```scala
+protected def getValue(): T //如何获取广播变量
+protected def doUnpersist(blocking: Boolean) // 移除持久化的广播变量
+protected def doDestroy(blocking: Boolean) //销毁广播变量时回调
+```
+## TorrentBroadcast
+
+## HttpBroadcastFactory
 
 
 
