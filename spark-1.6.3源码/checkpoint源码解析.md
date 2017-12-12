@@ -46,7 +46,7 @@ doCheckpoint方法先检查当前RDD是否需要checkpoint,如果不需要，就
 
 ## 第二步 spark怎么实现的Checkpoint
 从```RDD.checkpoint()```的源码
-```
+```scala
   def checkpoint(): Unit = RDDCheckpointData.synchronized {
       //在SparkContext设置checkpoint目录
     if (context.checkpointDir.isEmpty) {
