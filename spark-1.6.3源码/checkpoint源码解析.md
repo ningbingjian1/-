@@ -1,7 +1,22 @@
 # 如何checkpoint?
+
+下面是一个checkpoint的例子
+
+```scala
+    val conf = new SparkConf()
+      .setAppName("local")
+      .setMaster("local[1]")
+    val sc = new SparkContext(conf)
+    val rdd = sc.textFile("/path").flatMap(_.split(","))
+    //可以假设这里还有很多rdd的操作
+    .......
+    
+    rdd.checkpoint()
+    //计算记录数 计算完之后会
+    val records = rdd.count()
+    val wordcount = rdd.map((_,1)).reduceByKey(_ + _ ).collect()
 ```
-RDD.checkpoint()
-```
+上面的例子中
 # checkpoint是什么意思?
 
 所谓checkpoint就是把RDD的计算结果进行持久化，在下次获取该RDD结果数据的时候，直接从chekcpoint中提取，免去了重新计算的时间。这对于需要重复使用的RDD特别有用
@@ -45,7 +60,7 @@ doCheckpoint方法先检查当前RDD是否需要checkpoint,如果不需要，就
 
 ReliableRDDCheckpointData实现了RDDCheckpointData的抽象方法```doCheckpoint```，该方法实现了真正的checkpoint功能
 
-* 通过依赖```ReliableCheckpointRDD.writeRDDToCheckpointDirectory```把RDD计算结果写入磁盘
+* 通过依赖```ReliableCheckpointRDD.writeRDDToCheckpointDirectory```把RDD计算结果写入hdfs
 * 每个分区写一个文件
 * 根据写出文件创建一个CheckPointRDD返回ReliableCheckpointRDD
 
@@ -57,5 +72,9 @@ ReliableRDDCheckpointData实现了RDDCheckpointData的抽象方法```doCheckpoin
     ReliableCheckpointRDD.readCheckpointFile(file, broadcastedConf, context)
   }
 ```
+# checkpoint流程图
+
+# checkpoint和persist
+
 
 
