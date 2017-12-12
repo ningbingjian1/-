@@ -10,7 +10,7 @@
     val rdd = sc.textFile("/path").flatMap(_.split(","))
     //可以假设这里还有很多rdd的操作
     .......
-    
+
     rdd.checkpoint()
     //计算记录数 计算完之后会
     val records = rdd.count()
@@ -73,8 +73,20 @@ ReliableRDDCheckpointData实现了RDDCheckpointData的抽象方法```doCheckpoin
   }
 ```
 # checkpoint流程图
-
+![](https://github.com/ningbingjian1/reading/blob/master/spark-1.6.3%E6%BA%90%E7%A0%81/resources/checkpoint.png?raw=true)
 # checkpoint和persist
+如果一个RDD做了checkpoint，也做了persist操作的情况下，那它的子RDD应该是从checkpoin中获取结果还是从persist中？在spark中，如果做了persist()操作的话就会忽略checkpoint的结果，当然，存在这样的代码?
+
+```scala
+  final def iterator(split: Partition, context: TaskContext): Iterator[T] = {
+    if (storageLevel != StorageLevel.NONE) {
+      SparkEnv.get.cacheManager.getOrCompute(this, split, context, storageLevel)
+    } else {
+      computeOrReadCheckpoint(split, context)
+    }
+  }
+
+```
 
 
 
