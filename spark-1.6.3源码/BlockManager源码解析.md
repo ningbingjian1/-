@@ -20,6 +20,15 @@ BlockManager是主从结构,先看看BlockManager的架构图
 &emsp;那初始化都做了什么工作?   有下面几点
 * ```blockTransferService.init``` 这是一个block相关的传输服务
 * ```shuffleClient.init``` shuffle请求客户端初始化 负责shuffle过程block的获取
+* ```BlockManagerId```实例化 和executorId,host,port 构成BlockManagerId
+* ```master.registerBlockManager```向driver端注册
+
+# 存储Block
+当调用RDD的persis()方法或者cache等方法，都会把RDD的计算结果进行持久化，持久化写入就是由BlockManager来完成的，主要调用了BlockManager，具体可以查看```CacheManager.getOrCompute```
+# 读取Block
+# BlockManagerMaster BlockManagerSlave
+
+
 
 
 
