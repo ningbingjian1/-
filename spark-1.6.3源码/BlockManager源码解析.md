@@ -26,9 +26,44 @@ BlockManager是主从结构,先看看BlockManager的架构图
 * ```master.registerBlockManager```向driver端注册
 
 # 存储Block
-当调用RDD的persis()方法或者cache等方法，都会把RDD的计算结果进行持久化，持久化写入就是由BlockManager来完成的，主要调用了BlockManager，具体可以查看```CacheManager.getOrCompute```
+当调用RDD的persis()方法或者cache等方法，都会把RDD的计算结果进行持久化，持久化写入就是由BlockManager来完成的，主要调用了BlockManager，具体可以查看```CacheManager.getOrCompute```,而存储数据块的方式有好几种，包括
+```
+DISK_ONLY
+DISK_ONLY_2
+MEMORY_ONLY
+MEMORY_ONLY_2
+MEMORY_ONLY_SER
+MEMORY_ONLY_SER_2
+MEMORY_AND_DISK
+MEMORY_AND_DISK_2
+MEMORY_AND_DISK_SER
+MEMORY_AND_DISK_SER_2
+OFF_HEAP
+```
+在BlockManager存储block的方法主要有```BlockManager.putIterator```,```BlockManager.putBlockData```,```BlockManager.putBytes```,而这几个方法最终都会调用BlockManager.doPut方法
+```scala
+  private def doPut(
+      blockId: BlockId, //block的唯一标识
+      data: BlockValues,//block内容
+      level: StorageLevel,//存储级别
+      tellMaster: Boolean = true, //是否向master汇报
+      effectiveStorageLevel: Option[StorageLevel] = None) //
+    : Seq[(BlockId, BlockStatus)]
+```
+
+doPut方法包含的涉及的逻辑不少，实际调用过程大概如下
+* 根据存储级别选取存储方式:```memoryStore[内存],externalBlockStore[堆外],diskStore[磁盘]``
+
+* `根据对应的Store类型，调用```blockStore.putIterator```或者```blockStore.putArray```或者```blockStore.putBytes```,这里是真正的存储动作
+* 更新block状态BlockStatus
+* 写入block完成,标记block,释放当前block
+* 判断是否有副本，继续保存副本的block
+
 # 读取Block
+
+
 # BlockManagerMaster BlockManagerSlave
+
 
 
 
