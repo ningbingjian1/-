@@ -1,4 +1,5 @@
-[TOC]
+* auto-gen TOC:
+{:toc}
 
 
 blockManager负责spark中的数据存储的管理，不管是调用了cache,persist,还是broadcast等与存储相关的API，其数据都是由blockManager进行管理的，driver和executor都有一个blockManager实例来负责数据块的读写，而数据块的元数据管理是由driver端来管理。
@@ -88,11 +89,25 @@ doPut实际调用过程大概如下
 针对非Shuffle的读取，会调用doGetLocal方法，根据Block的存储类型,调用```DiskStore```,```MemoryStore```,```ExternalBlockStore```三者之一获取块数据,由存储级别选择.
 
 
-
-# DiskStore MemoryStore ExternalStore
-
-
 # BlockManagerMaster BlockManagerSlave
+之前提过，BlockManager是主从Master-Slave模式的，其中Master是存在Driver端，Slave存在于Executor端. 而在Exectuor端持有BlockManagerMasterEndpoint的RpcEndpointRef.
+
+BlockManagerMaster负责管理Block元数据，向BlockManagerSlave发送操作Block的消息，而Executor端的BlockManagerSlave负责向Master端发送Block的状态，并负责Block的操作的执行。
+
+在Executor端，启动的时候会主动向Driver端注册自己的,可在BlockManager.scala找到注册的代码
+```master.registerBlockManager(blockManagerId, maxMemory, slaveEndpoint)```
+
+
+
+# CacheManager
+CacheManager功能非常单一，在spark中负责对RDD的计算结果缓存的管理，RDD真正执行的时候会调用```RDD.compute``` --> ```RDD.iterator``` -->```cacheManager.getOrCompute```
+
+```CacheManager.getOrCompute```方法会先从缓存中查找是否已经有缓存结果，如果有直接返回，如果没有就计算，然后放入缓存。
+
+
+# DiskStore,MemoryStore,ExternalBlockStore
+
+
 
 
 
