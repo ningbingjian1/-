@@ -52,7 +52,7 @@ OFF_HEAP
 ```
 
 doPut实际调用过程大概如下
-* 根据存储级别选取存储方式:```memoryStore[内存],externalBlockStore[堆外],diskStore[磁盘]``
+* 根据存储级别选取存储方式:```memoryStore[内存],externalBlockStore[堆外],diskStore[磁盘]```
 * `根据对应的Store类型，调用```blockStore.putIterator```或者```blockStore.putArray```或者```blockStore.putBytes```,这里是真正的存储动作
 * 特别针对MemoryStore，可能出现内存不足的情况，如果可以，就存入磁盘。否则抛出OOM异常
 * 更新block状态BlockStatus。会在memoryStore章节的时候详细说明
