@@ -53,7 +53,6 @@ OFF_HEAP
 
 doPut实际调用过程大概如下
 * 根据存储级别选取存储方式:```memoryStore[内存],externalBlockStore[堆外],diskStore[磁盘]``
-
 * `根据对应的Store类型，调用```blockStore.putIterator```或者```blockStore.putArray```或者```blockStore.putBytes```,这里是真正的存储动作
 * 特别针对MemoryStore，可能出现内存不足的情况，如果可以，就存入磁盘。否则抛出OOM异常
 * 更新block状态BlockStatus。会在memoryStore章节的时候详细说明
@@ -61,10 +60,34 @@ doPut实际调用过程大概如下
 * 判断是否有副本，继续保存副本的block
 
 # 读取Block
-在spark中，一般读取Block的流程是这样的,当Executor从上游的Stage获取数据的时候会发起读取Block的操作，例如shuffle操作，这个时候Executor的pipeline的第一个RDD就是ShuffleRDD,查看ShuffleRDD的方法
-```
+在spark中，一般读取Block的流程是这样的,当Executor从上游的Stage获取数据的时候会发起读取Block的操作，Block的读取可能有两种情况，一个是读取存储在本地的Block，另一个是读取在远程节点上的Block,远程读取是通过ShuffleClient和NettyBlockTransferService配合实现的。但是最终都会调用BlockManager.getBlockData,这个方法代码并不多可以直接贴出来
+
+```scala
+  override def getBlockData(blockId: BlockId): ManagedBuffer = {
+
+    if (blockId.isShuffle) {
+    //shuffle 下一个stage请求上一个stage的结果
+      shuffleManager.shuffleBlockResolver.getBlockData(blockId.asInstanceOf[ShuffleBlockId])
+    } else {
+      //从本地获取Block
+      val blockBytesOpt = doGetLocal(blockId, asBlockResult = false)
+        .asInstanceOf[Option[ByteBuffer]]
+      if (blockBytesOpt.isDefined) {
+        val buffer = blockBytesOpt.get
+        new NioManagedBuffer(buffer)
+      } else {
+        throw new BlockNotFoundException(blockId.toString)
+      }
+    }
+  }
 
 ```
+针对shuffle的请求，目前存在两种读取，一个是```FileShuffleBlockResolver.getBlockData```
+一种是```IndexShuffleBlockResolver.getBlockData```,分别对应于hash和sort Shuffle的情况。可以参考shuffle模块的写出和读取来详细了解是如何操作的。
+
+针对非Shuffle的读取，会调用doGetLocal方法，根据Block的存储类型,调用```DiskStore```,```MemoryStore```,```ExternalBlockStore```三者之一获取块数据,由存储级别选择.
+
+
 
 # DiskStore MemoryStore ExternalStore
 
