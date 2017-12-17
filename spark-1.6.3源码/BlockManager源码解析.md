@@ -93,7 +93,13 @@ doPut实际调用过程大概如下
 BlockManagerMaster负责管理Block元数据，向BlockManagerSlave发送操作Block的消息，而Executor端的BlockManagerSlave负责向Master端发送Block的状态，并负责Block的操作的执行。
 
 在Executor端，启动的时候会主动向Driver端注册自己的,可在BlockManager.scala找到注册的代码
-```master.registerBlockManager(blockManagerId, maxMemory, slaveEndpoint)```
+```master.registerBlockManager(blockManagerId, maxMemory, slaveEndpoint)```,可以通过spark-shell启动来验证这个注册过程.
+```
+bin/spark-shell --master yarn  --num-executor 1
+```
+
+在这里我们申请了1个executor,观察截图，发现注册了两次BlockManager,1次是driver端的BlockManager注册，一次是executor端的blockManager注册。
+
 
 
 
