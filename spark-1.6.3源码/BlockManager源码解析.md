@@ -7,7 +7,7 @@ BlockManager是主从结构,先看看BlockManager的架构图
 
 # BlockManager实例化
    在spark中，入口是SparkContext类，在SparkContext中会创建一个SparkEnv来初始化很多spark需要的实例，BlockManger就是在SparkEnv创建的时候实例化的。BlockManager在Driver和Executor启动的时候进行实例化，大致步骤如下
-   ![](https://github.com/ningbingjian1/reading/blob/master/spark-1.6.3%E6%BA%90%E7%A0%81/resources/BlockManager%E5%AE%9E%E4%BE%8B%E5%8C%96.png?raw=true)
+   ![](https://github.com/ningbingjian1/reading/blob/master/spark-1.6.3%E6%BA%90%E7%A0%81/resources/BlockManager%E5%AE%9E%E4%BE%8B%E5%8C%96.jpg?raw=true)
    
    ```scala
      val blockManager = new BlockManager(executorId, rpcEnv, blockManagerMaster,
