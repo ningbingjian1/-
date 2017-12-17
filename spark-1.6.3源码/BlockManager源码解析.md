@@ -86,7 +86,7 @@ doPut实际调用过程大概如下
 针对非Shuffle的读取，会调用doGetLocal方法，根据Block的存储类型,调用```DiskStore```,```MemoryStore```,```ExternalBlockStore```三者之一获取块数据,由存储级别选择.
 
 
-# BlockManagerMaster BlockManagerSlave
+# BlockManagerMaster,BlockManagerSlave
 之前提过，BlockManager是主从Master-Slave模式的，其中Master是存在Driver端，Slave存在于Executor端. 而在Exectuor端持有BlockManagerMasterEndpoint的RpcEndpointRef.
 
 BlockManagerMaster负责管理Block元数据，向BlockManagerSlave发送操作Block的消息，而Executor端的BlockManagerSlave负责向Master端发送Block的状态，并负责Block的操作的执行。
@@ -102,13 +102,75 @@ bin/spark-shell --master yarn  --num-executor 1
 ![](https://github.com/ningbingjian1/reading/blob/master/spark-1.6.3%E6%BA%90%E7%A0%81/resources/blockManager%E5%90%AF%E5%8A%A8%E6%B3%A8%E5%86%8C%E6%88%AA%E5%9B%BE.png?raw=true)
 
 
+
+
 # CacheManager
 CacheManager功能非常单一，在spark中负责对RDD的计算结果缓存的管理，RDD真正执行的时候会调用```RDD.compute``` --> ```RDD.iterator``` -->```cacheManager.getOrCompute```
 
 ```CacheManager.getOrCompute```方法会先从缓存中查找是否已经有缓存结果，如果有直接返回，如果没有就计算，然后放入缓存。
 
 
+```scala
+
+  def getOrCompute[T](
+      rdd: RDD[T],
+      partition: Partition,
+      context: TaskContext,
+      storageLevel: StorageLevel): Iterator[T] = {
+
+    val key = RDDBlockId(rdd.id, partition.index)
+    logDebug(s"Looking for partition $key")
+    //从BlockManager获取块
+    blockManager.get(key) match {
+      case Some(blockResult) =>
+        
+        //....删除了一些无关紧要的代码.....
+
+      //获取到block，直接返回即可
+        val iter = blockResult.data.asInstanceOf[Iterator[T]]
+        new InterruptibleIterator[T](context, iter) {
+          override def next(): T = {
+            existingMetrics.incRecordsRead(1)
+            delegate.next()
+          }
+        }
+      case None =>
+      //缓存中没有对应的Block,需要重新计算
+      //获取锁  避免有其他线程也在计算同样的block --[推测执行]
+        val storedValues = acquireLockForPartition[T](key)
+        if (storedValues.isDefined) {
+          return new InterruptibleIterator[T](context, storedValues.get)
+        }
+
+        // Otherwise, we have to load the partition ourselves
+        try {
+          //从checkpoint中读取
+          val computedValues = rdd.computeOrReadCheckpoint(partition, context)
+
+
+          // Otherwise, cache the values and keep track of any updates in block statuses
+          val updatedBlocks = new ArrayBuffer[(BlockId, BlockStatus)]
+          //将计算结果存入缓存[disk,memory,external,具体哪个由storageLevel决定]
+          val cachedValues = putInBlockManager(key, computedValues, storageLevel, updatedBlocks)
+          //这里删除了部分无关紧要代码
+          //返回计算结果
+          new InterruptibleIterator(context, cachedValues)
+
+        } finally {
+          loading.synchronized {
+            loading.remove(key)
+            loading.notifyAll()
+          }
+        }
+    }
+```
+
 # DiskStore,MemoryStore,ExternalBlockStore
+
+前面提到，BlockManager负责计算过程的Block的写入和读取，而根据存储级别的设置，Block的存储可以分为```DiskStore,MemoryStore,ExternalBlockStore```,BlockManager根据存储级别的设定
+# BlockTransferService
+
+
 
 
 
