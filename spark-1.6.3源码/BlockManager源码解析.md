@@ -169,8 +169,97 @@ CacheManager功能非常单一，在spark中负责对RDD的计算结果缓存的
 
 前面提到，BlockManager负责计算过程的Block的写入和读取，而根据存储级别的设置，Block的存储可以分为```DiskStore,MemoryStore,ExternalBlockStore```,BlockManager根据存储级别的设定调用对应的API来进行存储。BlockManager内部将存储的操作委托给```DiskStore,MemoryStore,ExternalBlockStore```来实现。
 分别对应存储级别
-![]()
+![](https://github.com/ningbingjian1/reading/blob/master/spark-1.6.3%E6%BA%90%E7%A0%81/resources/%E5%AD%98%E5%82%A8%E7%BA%A7%E5%88%AB%E5%92%8CStore%E7%9A%84%E5%AF%B9%E5%BA%94%E5%85%B3%E7%B3%BB.jpg?raw=true)
 
+三个存储级别都继承了```BlockStore```,包含下面的抽象方法
+```
+  def putBytes(blockId: BlockId, bytes: ByteBuffer, level: StorageLevel): PutResult
+
+  /**
+   * Put in a block and, possibly, also return its content as either bytes or another Iterator.
+   * This is used to efficiently write the values to multiple locations (e.g. for replication).
+   *
+   * @return a PutResult that contains the size of the data, as well as the values put if
+   *         returnValues is true (if not, the result's data field can be null)
+   */
+  def putIterator(
+    blockId: BlockId,
+    values: Iterator[Any],
+    level: StorageLevel,
+    returnValues: Boolean): PutResult
+
+  def putArray(
+    blockId: BlockId,
+    values: Array[Any],
+    level: StorageLevel,
+    returnValues: Boolean): PutResult
+
+  /**
+   * Return the size of a block in bytes.
+   */
+  def getSize(blockId: BlockId): Long
+
+  def getBytes(blockId: BlockId): Option[ByteBuffer]
+
+  def getValues(blockId: BlockId): Option[Iterator[Any]]
+
+  /**
+   * Remove a block, if it exists.
+   * @param blockId the block to remove.
+   * @return True if the block was found and removed, False otherwise.
+   */
+  def remove(blockId: BlockId): Boolean
+
+  def contains(blockId: BlockId): Boolean
+```
+
+## DiskStore
+有三个存储块的方法,```putBytes,putArray,putIterator```,主要是调用文件的API进行读写流
+下面来分析存储的文件位置和文件名的确定
+```scala
+
+  override def putBytes(blockId: BlockId, _bytes: ByteBuffer, level: StorageLevel): PutResult = {
+    //....删除了部分代码
+    //复制一份 避免修改原来的pos limit 等
+    val bytes = _bytes.duplicate()
+    val file = diskManager.getFile(blockId)
+    val channel = new FileOutputStream(file).getChannel
+      while (bytes.remaining > 0) {
+        channel.write(bytes)
+      }
+
+    //....删除了部分代码...
+  }
+```
+```diskManager.getFile(blockId)```解析文件路径公式，
+
+hash --> blockId的hashcode
+
+localDirs --> spark运行临时目录,如果运行在YARN模式，从YARN_LOCAL_DIRS或者LOCAL_DIRS配置中获取目录，否则从SPARK_EXECUTOR_DIRS环境变量取，否则SPARK_LOCAL_DIRS，否则spark.local.dir，在不行就java.io.tmpdir了.java.io.tmpdir默认是/tmp
+
+subDirsPerLocalDir -- 默认是64，可以配置
+
+spark.diskStore.subDirectories修改，也就是默认有64个目录存储block
+
+dirId = hash/%localDis.length
+
+subDirId = hash/%localDis.length%subDirsPerLocalDir
+
+newDir --> subDirId格式化成两位十六进制的数字
+
+例如shuffle的文件名类似这样:
+/tmp/blockmgr-uuid/0a/"shuffle_" + shuffleId + "_" + mapId + "_" + reduceId + ".data"
+/tmp/blockmgr-uuid/0b/"rdd_" + rddId + "_" + splitIndex
+
+/tmp/blockmgr-5caacee8-c21e-4f2b-80ee-68193218b839/0e/rdd_5_9
+
+
+
+## MemoryStore
+
+当rdd.cache()或则rdd.persist()指定了内存存储级别的时候，就会调用MemoryStore进行存储,然后RDD进行真正计算的时候，调用了```CacheManager.getOrCompute``，该方法会根据存储级别对结果进行存储，针对内存级别的缓存，调用到了
+
+## ExternalBlockStore
 
 
 
