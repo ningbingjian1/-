@@ -1,5 +1,4 @@
 
-
 blockManager负责spark中的数据存储的管理，不管是调用了cache,persist,还是broadcast等与存储相关的API，其数据都是由blockManager进行管理的，driver和executor都有一个blockManager实例来负责数据块的读写，而数据块的元数据管理是由driver端来管理。
 
 BlockManager是主从结构,先看看BlockManager的架构图
@@ -100,7 +99,7 @@ bin/spark-shell --master yarn  --num-executor 1
 
 在这里我们申请了1个executor,观察截图，发现注册了两次BlockManager,1次是driver端的BlockManager注册，一次是executor端的blockManager注册。
 
-
+![]()
 
 
 # CacheManager
