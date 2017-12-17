@@ -167,7 +167,11 @@ CacheManager功能非常单一，在spark中负责对RDD的计算结果缓存的
 
 # DiskStore,MemoryStore,ExternalBlockStore
 
-前面提到，BlockManager负责计算过程的Block的写入和读取，而根据存储级别的设置，Block的存储可以分为```DiskStore,MemoryStore,ExternalBlockStore```,BlockManager根据存储级别的设定
+前面提到，BlockManager负责计算过程的Block的写入和读取，而根据存储级别的设置，Block的存储可以分为```DiskStore,MemoryStore,ExternalBlockStore```,BlockManager根据存储级别的设定调用对应的API来进行存储。BlockManager内部将存储的操作委托给```DiskStore,MemoryStore,ExternalBlockStore```来实现。
+分别对应存储级别
+
+
+
 # BlockTransferService
 
 
