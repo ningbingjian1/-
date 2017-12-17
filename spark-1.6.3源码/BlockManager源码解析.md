@@ -99,7 +99,7 @@ bin/spark-shell --master yarn  --num-executor 1
 
 在这里我们申请了1个executor,观察截图，发现注册了两次BlockManager,1次是driver端的BlockManager注册，一次是executor端的blockManager注册。
 
-![]()
+![](https://github.com/ningbingjian1/reading/blob/master/spark-1.6.3%E6%BA%90%E7%A0%81/resources/blockManager%E5%90%AF%E5%8A%A8%E6%B3%A8%E5%86%8C%E6%88%AA%E5%9B%BE.png?raw=true)
 
 
 # CacheManager
