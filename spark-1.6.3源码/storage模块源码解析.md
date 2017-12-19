@@ -1,4 +1,4 @@
-
+# ＢlockManager
 blockManager负责spark中的数据存储的管理，不管是调用了cache,persist,还是broadcast等与存储相关的API，其数据都是由blockManager进行管理的，driver和executor都有一个blockManager实例来负责数据块的读写，而数据块的元数据管理是由driver端来管理。
 
 BlockManager是主从结构,先看看BlockManager的架构图
@@ -281,10 +281,8 @@ putArray会预估下需要的缓存大小，然后调用了tryToPut方法.做真
 ## ExternalBlockStore 
 
 目前spark内置了Tachyon的外部存储，由于用得比较少，暂时略过这个分析，以后有时间回来写。  
-
-
-
 # BlockTransferService
+
 
 
 
