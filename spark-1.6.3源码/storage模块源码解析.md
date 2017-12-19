@@ -255,11 +255,32 @@ newDir --> subDirId格式化成两位十六进制的数字
 
 
 
-## MemoryStore
+## MemoryStore  
 
-当rdd.cache()或则rdd.persist()指定了内存存储级别的时候，就会调用MemoryStore进行存储,然后RDD进行真正计算的时候，调用了```CacheManager.getOrCompute``，该方法会根据存储级别对结果进行存储，针对内存级别的缓存，调用到了
+当rdd.cache()或则rdd.persist()指定了内存存储级别的时候，就会调用MemoryStore进行存储,然后RDD进行真正计算的时候，调用了
 
-## ExternalBlockStore
+```CacheManager.getOrCompute``，该方法会根据存储级别对结果进行存储，针对内存级别的缓存，调用到了```MemoryStore.putArray```，注意，除了
+
+putArray方法，另外两个putIterator,putBytes方法也是存储API，但是最终都调用了putArray，所以我们关注putArray就可以。方法签名如下
+
+```scala
+def putArray(
+      blockId: BlockId,//blockId
+      values: Array[Any],//基于数组类型的数据 
+      level: StorageLevel,//存储级别
+      returnValues: Boolean//是否有返回值
+      ): PutResult//返回类型
+```
+putArray会预估下需要的缓存大小，然后调用了tryToPut方法.做真正的存储,tryToPut方法主要有几个
+
+(1). 判断是否在当前任务线程内展开过该内存块，如果展开过，证明存在可释放内存，调用MemoryManager.releaseUnrollMemory释放内存[所谓展开，就是调用了```memoryStore.unrollSafely```,当缓存的数据块是从hdfs读取的,返回的是一个数据块迭代器,只有调用next的时候才会真正的将该块数据载入内存，当缓存之前会调用```memoryStore.unrollSafely```,可以检测某个数据块是否可以安全的存入内存]
+(2).向memoryManager请求足够的内存
+(3).内存足够，直接把block转换为一个MemoryEntry,存放到Map,key是blockId,下次直接通过key就可以找到
+(4).内存不足,返回数据，以便可以进行转换为磁盘存储
+
+## ExternalBlockStore 
+
+目前spark内置了Tachyon的外部存储，由于用得比较少，暂时略过这个分析，以后有时间回来写。  
 
 
 
