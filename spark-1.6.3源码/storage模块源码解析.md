@@ -283,6 +283,30 @@ putArray会预估下需要的缓存大小，然后调用了tryToPut方法.做真
 目前spark内置了Tachyon的外部存储，由于用得比较少，暂时略过这个分析，以后有时间回来写。  
 # BlockTransferService
 
+每个BlockManager内部都有一个BlockTransferService实例，通过调用```BlockTransferService.init```方法，创建服务，向其他BlockManager提供获
+
+取块的服务.
+
+简要看看BlockTransferService，该类是一个接口，默认只有一个实现```NettyBlockTransferService```,由于启动服务是调用```init```方法，在init
+
+方法很简单，主要创建```TransportServer```,默认端口是0，由配置```spark.blockManager.port```控制。
+
+主要实现有两个功能，获取块和上传块[传输到别的exector],先看看获取块
+fetchBlocks方法有两个获取块的选择一个是可以失败重试，一个是不可失败重试。由配置```io.retryWait```决定
+<1> 支持失败重试由```RetryingBlockFetcher```实现,
+首先看看方法调用链:```RetryingBlockFetcher.start``` --> ```RetryingBlockFetcher.fetchAllOutstanding``` -->```RetryingBlockFetcher.createAndStart``` --> ```OneForOneBlockFetcher.start``` -->```TransportClient.sendRpc``` --> ```TransportClient.fetchChunk``` 
+当获取块成功之后，回调到```BlockFetchingListener.onBlockFetchSuccess```
+在何时重试?在```RetryingBlockFetcher.createAndStart``` 方法里重试，当获取发生异常，会继续重试，直到达到上限。
+
+<2> 不可失败重试，```new OneForOneBlockFetcher(client, appId, execId, blockIds.toArray, listener).start()```
+和多次失败可重试差不多，少了重试环节
+
+# spark内存管理
+
+
+
+
+
 
 
 
