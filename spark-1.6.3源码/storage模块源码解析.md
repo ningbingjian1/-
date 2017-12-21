@@ -274,8 +274,11 @@ def putArray(
 putArray会预估下需要的缓存大小，然后调用了tryToPut方法.做真正的存储,tryToPut方法主要有几个
 
 (1). 判断是否在当前任务线程内展开过该内存块，如果展开过，证明存在可释放内存，调用MemoryManager.releaseUnrollMemory释放内存[所谓展开，就是调用了```memoryStore.unrollSafely```,当缓存的数据块是从hdfs读取的,返回的是一个数据块迭代器,只有调用next的时候才会真正的将该块数据载入内存，当缓存之前会调用```memoryStore.unrollSafely```,可以检测某个数据块是否可以安全的存入内存]
+
 (2).向memoryManager请求足够的内存
+
 (3).内存足够，直接把block转换为一个MemoryEntry,存放到Map,key是blockId,下次直接通过key就可以找到
+
 (4).内存不足,返回数据，以便可以进行转换为磁盘存储
 
 ## ExternalBlockStore 
@@ -284,7 +287,6 @@ putArray会预估下需要的缓存大小，然后调用了tryToPut方法.做真
 # BlockTransferService
 
 每个BlockManager内部都有一个BlockTransferService实例，通过调用```BlockTransferService.init```方法，创建服务，向其他BlockManager提供获
-
 取块的服务.
 
 简要看看BlockTransferService，该类是一个接口，默认只有一个实现```NettyBlockTransferService```,由于启动服务是调用```init```方法，在init
@@ -292,13 +294,23 @@ putArray会预估下需要的缓存大小，然后调用了tryToPut方法.做真
 方法很简单，主要创建```TransportServer```,默认端口是0，由配置```spark.blockManager.port```控制。
 
 主要实现有两个功能，获取块和上传块[传输到别的exector],先看看获取块
+
 fetchBlocks方法有两个获取块的选择一个是可以失败重试，一个是不可失败重试。由配置```io.retryWait```决定
+
 <1> 支持失败重试由```RetryingBlockFetcher```实现,
-首先看看方法调用链:```RetryingBlockFetcher.start``` --> ```RetryingBlockFetcher.fetchAllOutstanding``` -->```RetryingBlockFetcher.createAndStart``` --> ```OneForOneBlockFetcher.start``` -->```TransportClient.sendRpc``` --> ```TransportClient.fetchChunk``` 
+
+首先看看方法调用链:```RetryingBlockFetcher.start``` --> ```RetryingBlockFetcher.fetchAllOutstanding``` 
+
+-->```RetryingBlockFetcher.createAndStart``` --> ```OneForOneBlockFetcher.start``` -->```TransportClient.sendRpc``` --> 
+
+```TransportClient.fetchChunk``` 
+
 当获取块成功之后，回调到```BlockFetchingListener.onBlockFetchSuccess```
+
 在何时重试?在```RetryingBlockFetcher.createAndStart``` 方法里重试，当获取发生异常，会继续重试，直到达到上限。
 
 <2> 不可失败重试，```new OneForOneBlockFetcher(client, appId, execId, blockIds.toArray, listener).start()```
+
 和多次失败可重试差不多，少了重试环节
 
 # spark内存管理
