@@ -1,6 +1,6 @@
 # spark内存管理
 
-![]()
+![](https://github.com/ningbingjian1/reading/blob/master/spark-1.6.3%E6%BA%90%E7%A0%81/resources/spark%E5%86%85%E5%AD%98%E6%A8%A1%E5%9D%97%E6%9E%B6%E6%9E%84%E5%9B%BE.png?raw=true)
 
 
 spark大部分调优都和内存有关，所以spark内部有专门的实现来针对内存进行管理，spark中把内存分为两种，1是用于存储的内存[MemoryStore]，1是用于在任务执行任务，例如shuffle期间所需要的内存[TaskMemoryManager]。spark1.6以前，两种内存是固定大小的，spark1.6之后，存储内存是固定的，但是执行任务期间所需的内存是可以向存储内存"借"的，这样当执行任务期间内存不够的时候，能即时动态增加内存大小而不用重新配置再重新提交spark应用程序
