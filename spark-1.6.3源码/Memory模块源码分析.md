@@ -146,6 +146,10 @@ memoryFraction ： 0.75 spark.memory.fraction  内存因子是执行任务期间
 
 例如申请了1G 那么最大可用内存就是（1024M - 450M） * 0.75 = 430.5M,由执行任务期间所需内存和存储所需内存共同拥有
 
+# 内存管理配置
+spark.memory.useLegacyMode  默认false 使用UnifiedMemoryManager
+
+
 
 
 
