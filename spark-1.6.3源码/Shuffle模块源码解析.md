@@ -422,9 +422,55 @@ AppendOnlyMap:只可追加的Map
 2. 默认容量是64 * 2 = 128
 3. 当map的数量大于可容纳的0.7，动态增加map容量
 #### SizeTracker
-可以追踪对象的大小
+可以追踪对象的大小,具体详情
+如果想要给对象添加追踪使用内存空间大小的功能，只需要继承```SizeTracker```,然后在修改对象的方法中调用```super.afterUpdate```方法就可以拿到当前对象占用内存空间的大小。
+实现思路如下：
 
-### ExternalSorter.maybeSpill
+内部有1个样本队列，队列元素存放占用内存大小和更新次数，表示这一
+
+次更新和上一次更新经过抽象估计得大小，队列控制只能存放两个元素,
+
+表示这一轮抽象大小和上一轮抽象大小。
+
+需要注意的是，并不是每次更新对象都会进行评估内存占用的，而是经过
+
+多次更新才会预估内存占用，那到底是多少次呢？默认是下一轮抽样预估
+
+大小的时机是当更新次数达到上一轮次数的1.1倍的时候，就会执行内存
+
+预估。
+
+
+几个成员变量说明:
+
+SAMPLE_GROWTH_RATE:1.1 控制抽样频次  相当于默认每一次都评估 如果是2 那就是2 4 8 。。。次的时候进行评估
+
+samples:队列 存放最近两次的抽样结果
+
+bytesPerUpdate:每次更新的字节数
+
+numUpdates： 记录总共更新次数
+
+nextSampleNum: 更新到多少次的时候开始抽样 ```nextSampleNum == numUpdates```会开始抽样
+
+如何计算占用内存 ? 
+
+```
+最后一次评估的内存大小 + 每次更新占用字节数 * [总更新次数 - 最近一次抽样的记录点]
+目前默认 最后一个数是0
+```
+
+### ExternalSorter.maybeSpill 溢出磁盘逻辑
+需要溢出磁盘的下面两个条件的任意一个：
+1.内存 当前占用内存大于规定内存阀值```initialMemoryThreshold``` [spark.shuffle.spill.initialMemoryThreshold 初始5M 每次以2倍当前内存 减去 阀值内存 来申请预留]
+
+2.写入内存记录大于```spark.shuffle.spill.numElementsForceSpillThreshold```配置的记录数 默认是Long.MaxValue 也就是默认是不可能满足这个条件
+
+
+
+
+
+#### SizeEstimator.estimate
 
 
 # HashShuffleManager
