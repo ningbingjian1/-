@@ -6,6 +6,8 @@
   <inceptionYear>2008</inceptionYear>
     <modules>
         <module>spark-ning-rpc</module>
+        <module>hadoop-yarn-test</module>
+      <module>hadoop-yarn-ning</module>
     </modules>
     <packaging>pom</packaging>
   <properties>
@@ -27,7 +29,7 @@
       <url>http://scala-tools.org/repo-releases</url>
     </pluginRepository>
   </pluginRepositories>
-
+<dependencyManagement>
   <dependencies>
     <dependency>
       <groupId>org.scala-lang</groupId>
@@ -46,8 +48,18 @@
       <version>1.2.5</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-yarn-client</artifactId>
+      <version>2.6.5</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-client</artifactId>
+      <version>2.6.5</version>
+    </dependency>
   </dependencies>
-
+</dependencyManagement>
   <build>
     <sourceDirectory>src/main/scala</sourceDirectory>
     <testSourceDirectory>src/test/scala</testSourceDirectory>
@@ -66,7 +78,7 @@
         <configuration>
           <scalaVersion>${scala.version}</scalaVersion>
           <args>
-            <arg>-target:jvm-1.5</arg>
+            <arg>-target:jvm-1.8</arg>
           </args>
         </configuration>
       </plugin>

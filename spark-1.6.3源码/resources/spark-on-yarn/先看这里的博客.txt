@@ -1,0 +1,11 @@
+Spark on Yarn资源调度源码解析
+http://blog.csdn.net/huxuanlai/article/details/59512571
+
+Spark源码走读10——Spark On Yarn
+http://blog.csdn.net/huwenfeng_2011/article/details/43371015
+
+YARN应用开发流程
+https://my.oschina.net/u/1434348/blog/193374
+
+Spark源码系列（七）Spark on yarn具体实现
+https://www.cnblogs.com/cenyuhai/p/3834894.html

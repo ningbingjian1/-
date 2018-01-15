@@ -6,10 +6,14 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="hadoop-yarn-ning" />
+        <module name="hadoop-yarn-test" />
         <module name="spark-ning-rpc" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
+    <bytecodeTargetLevel target="1.8">
+      <module name="hadoop-yarn-ning" target="1.5" />
+      <module name="hadoop-yarn-test" target="1.5" />
       <module name="spark-ning" target="1.5" />
       <module name="spark-ning-rpc" target="1.5" />
     </bytecodeTargetLevel>
